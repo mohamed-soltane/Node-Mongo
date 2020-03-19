@@ -8,38 +8,46 @@ const dbname = 'nucampsite';
 MongoClient.connect(url, { useUnifiedTopology: true }).then(client => {
 
     console.log('Connected correctly to server');
+
     const db = client.db(dbname);
 
-    dboper.insertDocument(db, { name: "Breadcrumb Trail Campground", description: "Test"},
-        'campsites')
-        .then(result => {
-            console.log('Insert Document:\n', result.ops);
+    db.dropCollection('campsites')
+    .then(result => {
+        console.log('Dropped Collection:', result);
+    })
+    .catch(err => console.log('No collection to drop.'));
 
-            return dboper.findDocuments(db, 'campsites');
-        })
-        .then(docs => {
-                console.log('Found Documents:\n', docs);
+    dboper.insertDocument(db, {name: "Breadcrumb Trail Campground", description: "Test"}, 'campsites')
+    .then(result => {
+        console.log('Insert Document:', result.ops);
 
-            return dboper.updateDocument(db, { name: "Breadcrumb Trail Campground" },
-                    { description: "Updated Test" }, 'campsites');
+        return dboper.findDocuments(db, 'campsites');
+    })
+    .then(docs => {
+        console.log('Found Documents:', docs);
 
-        })
-        .then(result => {
-            console.log('Updated Document:\n', result.result);
+        return dboper.updateDocument(db, { name: "Breadcrumb Trail Campground" },
+            { description: "Updated Test Description" }, 'campsites');
+    })
+    .then(result => {
+        console.log('Updated Document Count:', result.result.nModified);
 
-            return dboper.findDocuments(db, 'campsites');
-        })
-        .then(docs => {
-            console.log('Found Updated Documents:\n', docs);
-                            
-            return db.dropCollection('campsites');
-        })
-        .then(result => {
-            console.log('Dropped Collection:', result);
+        return dboper.findDocuments(db, 'campsites');
+    })
+    .then(docs => {
+        console.log('Found Documents:', docs);
 
-            return client.close();
-        })
-        .catch(err => console.log(err));
+        return dboper.removeDocument(db, { name: "Breadcrumb Trail Campground" },
+            'campsites');
+    })
+    .then(result => {
+        console.log('Deleted Document Count:', result.deletedCount);
 
+        return client.close();
+    })
+    .catch(err => {
+        console.log(err);
+        client.close();
+    });
 })
 .catch(err => console.log(err));
